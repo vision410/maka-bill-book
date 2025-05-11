@@ -199,18 +199,18 @@
       <input id="billNo" type="hidden">
       <input id="date" type="hidden">
 
-      <div class="row"><label>Customer Name</label><input id="customerName" type="text" oninput="updatePreview()"></div>
-      <div class="row"><label>Maal (kg)</label><input id="maal" type="number" oninput="updatePreview()"></div>
-      <div class="row"><label>Price per Kg</label><input id="priceKg" type="number" oninput="updatePreview()"></div>
-      <div class="row"><label>Bag Count</label><input id="bag" type="number" oninput="updatePreview()"></div>
-      <div class="row"><label>Per Bag Price</label><input id="bagPrice" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>ग्र्हक नाम </label><input id="customerName" type="text" oninput="updatePreview()"></div>
+      <div class="row"><label>टोटल वज़न </label><input id="maal" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>किलो प्राइस </label><input id="priceKg" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>टोटल बैग </label><input id="bag" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>पर बैग हमाली </label><input id="bagPrice" type="number" oninput="updatePreview()"></div>
       
       <div class="buttons">
-      <button onclick="saveData()">Save & Print</button>
+      <button onclick="saveData()">सेव & प्रिंट </button>
       </div>
 
     <div class="row">
-  <label>Search Bill (No or Name)</label>
+  <label>सर्च ग्र्हक बिल नंबर & नाम  </label>
   <input id="searchInput" type="text" oninput="showSuggestions()">
   <button onclick="searchBill()">Search</button>
 </div>
@@ -219,9 +219,9 @@
 
       <hr>
       <h3>Payment Section</h3>
-      <div class="row"><label>Payment Date</label><input type="date" id="paymentDate"></div>
+      <div class="row"><label>तारिक </label><input type="date" id="paymentDate"></div>
       <div class="row">
-        <label>Amount (+ / -)</label>
+        <label>अमाउंट  (+ / -)</label>
         <div style="display: flex; gap: 10px;">
           <select id="paymentType">
             <option value="-">Minus (-)</option>
@@ -231,7 +231,7 @@
         </div>
       </div>
       <div class="row">
-        <label>Reason</label>
+        <label>किस लिया </label>
         <select id="paymentReason">
           <option>ऊपनेर</option>
           <option>ऑनलाइन</option>
@@ -243,7 +243,7 @@
           <option>पापा</option>
         </select>
       </div>
-      <div class="buttons"><button onclick="addPayment()">Add Payment</button></div>
+      <div class="buttons"><button onclick="addPayment()">सेव </button></div>
 
     <div class="preview-section">
       <div class="bill-box">
@@ -640,11 +640,9 @@ if ("serviceWorker" in navigator) {
 </div>
  <div class="buttons">
         <button onclick="clearForm()">Clear</button>
-        <button onclick="toggleDarkMode()">Dark Mode</button>
-      </div>
 <div class="buttons">
-        <button onclick="deleteBill()">Delete Bill</button>
-        <button onclick="deleteAllBills()">Delete All Bills</button>
+        <button onclick="deleteBill()">डिलीट बिल </button>
+        <button onclick="deleteAllBills()">सभी बिल डिलीट </button>
       </div>
     </div>
 <hr>
