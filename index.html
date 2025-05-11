@@ -555,42 +555,6 @@ async function downloadPDF() {
 
   doc.save("bills_summary.pdf");
 }
-let currentLang = 'mr'; // 'mr' = Marathi, 'en' = English
-
-const labels = {
-  customerName: { mr: 'ग्राहकाचे नाव', en: 'Customer Name' },
-  maal: { mr: 'माल (किलो)', en: 'Maal (kg)' },
-  priceKg: { mr: 'दर प्रति किलो', en: 'Price per Kg' },
-  bag: { mr: 'पोत्यांची संख्या', en: 'Bag Count' },
-  bagPrice: { mr: 'प्रति पोती दर', en: 'Per Bag Price' },
-  maalLabel: { mr: 'माल', en: 'Maal' },
-};
-
-function toggleLanguage() {
-  currentLang = currentLang === 'mr' ? 'en' : 'mr';
-
-  document.querySelector('label[for="customerName"]').innerText = labels.customerName[currentLang];
-  document.querySelector('label[for="maal"]').innerText = labels.maal[currentLang];
-  document.querySelector('label[for="priceKg"]').innerText = labels.priceKg[currentLang];
-  document.querySelector('label[for="bag"]').innerText = labels.bag[currentLang];
-  document.querySelector('label[for="bagPrice"]').innerText = labels.bagPrice[currentLang];
-  document.querySelector('label[for="maalType"]').innerText = labels.maalLabel[currentLang];
-
-  const maalOptions = {
-    mr: ["मका", "सोयबीन", "कपास", "चना", "गहू", "ज्वर", "बाजरा", "सोर्यफुल", "मूग", "तुर"],
-    en: ["Corn", "Soybean", "Cotton", "Chickpea", "Wheat", "Sorghum", "Millet", "Sunflower", "Moong", "Toor"]
-  };
-
-  const maalSelect = document.getElementById("maalType");
-  maalSelect.innerHTML = "";
-  maalOptions[currentLang].forEach(opt => {
-    const option = document.createElement("option");
-    option.text = opt;
-    maalSelect.add(option);
-  });
-
-  updatePreview();
-}
 
 function showSummary() {
   const from = document.getElementById("summaryFromDate").value;
@@ -651,11 +615,6 @@ function showSummary() {
   container.innerHTML = html;
   container.style.display = "block";
 }
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js")
-      .then(reg => console.log("Service Worker Registered!", reg))
-      .catch(err => console.log("Service Worker Failed:", err));
-  }
 
     window.onload = function () {
       const today = new Date().toISOString().split('T')[0];
@@ -666,6 +625,12 @@ if ("serviceWorker" in navigator) {
       document.getElementById("topDate").innerText = today;
       updatePreview();
     };
+
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(reg => console.log("Service Worker Registered!", reg))
+      .catch(err => console.log("Service Worker Failed:", err));
+  }
   </script>
 <div class="buttons">
   <button onclick="exportData()">Export JSON</button>
@@ -682,7 +647,6 @@ if ("serviceWorker" in navigator) {
         <button onclick="deleteAllBills()">Delete All Bills</button>
       </div>
     </div>
-<button onclick="toggleLanguage()">Toggle Language</button>
 <hr>
 <h3>Summary Report</h3>
 <div class="row">
