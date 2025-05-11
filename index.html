@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#667eea" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Afsar Traders Bill</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f9f9fc;
+      color: #333;
+      transition: 0.3s;
+    }
+
+    .dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-section,
+    .preview-section {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .dark-mode .form-section,
+    .dark-mode .preview-section {
+      background: #1e1e1e;
+    }
+
+    .row {
+      margin-bottom: 15px;
+    }
+
+    .row label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .row input,
+    .row select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .row input:focus,
+    .row select:focus {
+      border-color: #5e9eff;
+    }
+
+    h2 {
+      text-align: center;
+      color: #444;
+    }
+
+    .buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .buttons button {
+      padding: 10px 20px;
+      margin: 8px;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .buttons button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(118, 75, 162, 0.4);
+      opacity: 0.95;
+    }
+
+    .bill-box {
+      border: 1px solid #ddd;
+      padding: 15px;
+      background: #fdfdfd;
+      border-radius: 8px;
+    }
+
+    .bill-box h3 {
+      margin-top: 0;
+      color: #222;
+    }
+
+    .bill-box table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .bill-box td,
+    .bill-box th {
+      padding: 6px 8px;
+      border-bottom: 1px solid #eee;
+    }
+
+    #suggestions {
+      border: 1px solid #ccc;
+      background: #fff;
+      max-height: 150px;
+      overflow-y: auto;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+   @media print {
+  * {
+    visibility: hidden;
+  }
+
+  .bill-box, .bill-box * {
+    visibility: visible;
+  }
+
+  .bill-box {
+    position: fixed;
+    top: 20mm;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 72mm; /* Thermal printer width */
+    padding: 0;
+    font-size: 10pt;
+    background: white;
+    box-shadow: none;
+    border: none;
+    height: auto;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+    background: white;
+  }
+
+  @page {
+    size: 80mm auto; /* Thermal printer size */
+    margin: 0;
+  }
+}
+  </style>
+</head>
+<body>
+  <h2>Afsar Traders - Billing</h2>
+  <div class="container">
+    <div class="form-section">
+      <!-- Top Corner Display Only -->
+      <div class="row" style="display: flex; justify-content: space-between; font-weight: bold;">
+        <div>Bill No: <span id="topBillNo"></span></div>
+        <div>Date: <span id="topDate"></span></div>
+      </div>
+
+      <div class="row">
+        <label>माल </label>
+        <select id="maalType" onchange="updatePreview()">
+          <option>मका</option>
+          <option>सोयबीन</option>
+          <option>कपास</option>
+          <option>चना</option>
+          <option>गहू</option>
+          <option>ज्वर</option>
+          <option>बाजरा</option>
+          <option>सोर्यफुल</option>
+          <option>मूग</option>
+          <option>तुर</option>
+        </select>
+      </div>
+
+      <!-- Hidden fields for bill no and date -->
+      <input id="billNo" type="hidden">
+      <input id="date" type="hidden">
+
+      <div class="row"><label>Customer Name</label><input id="customerName" type="text" oninput="updatePreview()"></div>
+      <div class="row"><label>Maal (kg)</label><input id="maal" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>Price per Kg</label><input id="priceKg" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>Bag Count</label><input id="bag" type="number" oninput="updatePreview()"></div>
+      <div class="row"><label>Per Bag Price</label><input id="bagPrice" type="number" oninput="updatePreview()"></div>
+      
+      <div class="buttons">
+      <button onclick="saveData()">Save & Print</button>
+      </div>
+
+    <div class="row">
+  <label>Search Bill (No or Name)</label>
+  <input id="searchInput" type="text" oninput="showSuggestions()">
+  <button onclick="searchBill()">Search</button>
+</div>
+
+<div id="suggestions" style="border: 1px solid #ccc; background: #fff; max-height: 150px; overflow-y: auto;"></div>
+
+      <hr>
+      <h3>Payment Section</h3>
+      <div class="row"><label>Payment Date</label><input type="date" id="paymentDate"></div>
+      <div class="row">
+        <label>Amount (+ / -)</label>
+        <div style="display: flex; gap: 10px;">
+          <select id="paymentType">
+            <option value="-">Minus (-)</option>
+            <option value="+">Plus (+)</option>
+          </select>
+          <input type="number" id="paymentAmount" step="0.01">
+        </div>
+      </div>
+      <div class="row">
+        <label>Reason</label>
+        <select id="paymentReason">
+          <option>ऊपनेर</option>
+          <option>ऑनलाइन</option>
+          <option>नागदी</option>
+          <option>उचल</option>
+          <option>दवाखाना</option>
+          <option>काम</option>
+          <option>शादी</option>
+          <option>पापा</option>
+        </select>
+      </div>
+      <div class="buttons"><button onclick="addPayment()">Add Payment</button></div>
+
+    <div class="preview-section">
+      <div class="bill-box">
+        <h3 style="text-align:center;">Afsar Traders</h3>
+        <p style="text-align:center;">Mobile: 9975244299</p>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+          <div><strong>Bill No:</strong> <span id="pBillNo"></span></div>
+          <div><strong>Date:</strong> <span id="pDate"></span></div>
+        </div>
+        <table>
+          <tr><td><strong>Customer:</strong></td><td id="pCustomerName"></td></tr>
+          <tr><td><strong>माल Type:</strong></td><td id="pMaalType"></td></tr>
+          <tr><td><strong>Maal (kg):</strong></td><td id="pMaal"></td></tr>
+          <tr><td><strong>Rate per Kg:</strong></td><td id="pPriceKg"></td></tr>
+          <tr><td><strong>हमाली:</strong></td><td id="pHamali"></td></tr>
+          <tbody id="pPaymentRows"></tbody>
+          <tr><td><strong>Total Amount:</strong></td><td id="pTotal" style="font-weight:bold;"></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let payments = [];
+
+    function updatePreview() {
+      const billNo = document.getElementById("billNo").value;
+      const date = document.getElementById("date").value;
+      const customerName = document.getElementById("customerName").value;
+      const maal = parseFloat(document.getElementById("maal").value) || 0;
+      const priceKg = parseFloat(document.getElementById("priceKg").value) || 0;
+      const bag = parseFloat(document.getElementById("bag").value) || 0;
+      const bagPrice = parseFloat(document.getElementById("bagPrice").value) || 0;
+      const maalType = document.getElementById("maalType").value;
+
+      const hamali = bag * bagPrice;
+      const baseTotal = (maal * priceKg) - hamali;
+
+      let paymentsHTML = "";
+      const netPayments = payments.reduce((sum, p) => {
+        paymentsHTML += `<tr><td><strong>${p.reason} (${p.type})</strong>:</td><td>₹${p.amount.toFixed(2)}</td></tr>`;
+        return p.type === "+" ? sum + p.amount : sum - p.amount;
+      }, 0);
+
+      const finalTotal = baseTotal + netPayments;
+
+      document.getElementById("topBillNo").innerText = billNo;
+      document.getElementById("topDate").innerText = date;
+      document.getElementById("pBillNo").innerText = billNo;
+      document.getElementById("pDate").innerText = date;
+      document.getElementById("pCustomerName").innerText = customerName;
+      document.getElementById("pMaal").innerText = maal;
+      document.getElementById("pPriceKg").innerText = priceKg;
+      document.getElementById("pMaalType").innerText = maalType;
+      document.getElementById("pHamali").innerText = `₹${hamali.toFixed(2)}`;
+      document.getElementById("pPaymentRows").innerHTML = paymentsHTML;
+      document.getElementById("pTotal").innerHTML = `₹${finalTotal.toFixed(2)} <span style="font-size: 0.8em;">(${finalTotal <= 0 ? 'Paid' : 'Due'})</span>`;
+    }
+
+    function addPayment() {
+      const date = document.getElementById("paymentDate").value;
+      const amount = parseFloat(document.getElementById("paymentAmount").value);
+      const reason = document.getElementById("paymentReason").value;
+      const type = document.getElementById("paymentType").value;
+
+      if (!date || isNaN(amount)) {
+        alert("Please enter date and amount.");
+        return;
+      }
+
+      payments.push({ date, amount, reason, type });
+      updatePreview();
+    }
+
+    function saveData() {
+      const billNo = document.getElementById("billNo").value;
+      const data = {
+        billNo,
+        date: document.getElementById("date").value,
+        customerName: document.getElementById("customerName").value,
+        maal: document.getElementById("maal").value,
+        priceKg: document.getElementById("priceKg").value,
+        bag: document.getElementById("bag").value,
+        bagPrice: document.getElementById("bagPrice").value,
+        maalType: document.getElementById("maalType").value,
+        payments
+      };
+
+      let bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+      const existingIndex = bills.findIndex(b => b.billNo == billNo);
+
+      if (existingIndex !== -1) {
+        bills[existingIndex] = data;
+      } else {
+        bills.push(data);
+        let lastBillNo = parseInt(localStorage.getItem("lastBillNo") || "0", 10);
+        const nextBillNo = lastBillNo + 1;
+        localStorage.setItem("lastBillNo", nextBillNo);
+      }
+
+      localStorage.setItem("allBills", JSON.stringify(bills));
+      alert("Saved!");
+      window.print();
+      clearForm();
+    }
+
+    function clearForm() {
+      document.querySelectorAll("input, select").forEach(input => {
+        if (input.id !== "billNo" && input.id !== "date") {
+          input.value = "";
+        }
+      });
+      payments = [];
+      let lastBillNo = parseInt(localStorage.getItem("lastBillNo") || "0", 10);
+      document.getElementById("billNo").value = lastBillNo + 1;
+      document.getElementById("date").value = new Date().toISOString().split("T")[0];
+      document.getElementById("paymentType").value = "-";
+      updatePreview();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function searchBill() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      let bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+      const found = bills.find(b => b.billNo == query || b.customerName.toLowerCase().includes(query));
+
+      if (found) {
+        document.getElementById("billNo").value = found.billNo;
+        document.getElementById("date").value = found.date;
+        document.getElementById("customerName").value = found.customerName;
+        document.getElementById("maal").value = found.maal;
+        document.getElementById("priceKg").value = found.priceKg;
+        document.getElementById("bag").value = found.bag;
+        document.getElementById("bagPrice").value = found.bagPrice;
+        document.getElementById("maalType").value = found.maalType;
+        payments = found.payments || [];
+        updatePreview();
+        alert("Bill loaded.");
+      } else {
+        alert("Bill not found.");
+      }
+    }
+
+    function deleteBill() {
+      const password = prompt("Enter password to delete this bill:");
+      if (password !== "7875") return alert("Incorrect password.");
+      const billNo = document.getElementById("billNo").value;
+      let bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+      bills = bills.filter(b => b.billNo != billNo);
+      localStorage.setItem("allBills", JSON.stringify(bills));
+      alert("Bill deleted.");
+      clearForm();
+    }
+
+    function deleteAllBills() {
+      const password = prompt("Enter password to delete all bills:");
+      if (password !== "7875") return alert("Incorrect password.");
+      localStorage.removeItem("allBills");
+      localStorage.removeItem("lastBillNo");
+      alert("All bills deleted.");
+      clearForm();
+    }
+
+function showSuggestions() {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const suggestionsDiv = document.getElementById("suggestions");
+  suggestionsDiv.innerHTML = "";
+
+  if (!query) {
+    suggestionsDiv.style.display = "none";
+    return;
+  }
+
+  let bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+
+  const matches = bills.filter(b =>
+    b.billNo.toString().includes(query) ||
+    (b.customerName && b.customerName.toLowerCase().includes(query))
+  );
+
+  if (matches.length === 0) {
+    suggestionsDiv.innerHTML = "<div style='padding: 8px;'>No match found.</div>";
+    suggestionsDiv.style.display = "block";
+    return;
+  }
+
+  matches.slice(0, 10).forEach(bill => {
+    const div = document.createElement("div");
+    div.style.padding = "8px";
+    div.style.cursor = "pointer";
+    div.style.borderBottom = "1px solid #eee";
+    div.textContent = `Bill No: ${bill.billNo} - ${bill.customerName}`;
+    div.onclick = () => {
+      document.getElementById("searchInput").value = bill.billNo;
+      suggestionsDiv.innerHTML = "";
+      suggestionsDiv.style.display = "none";
+      searchBill();
+    };
+    suggestionsDiv.appendChild(div);
+  });
+
+  suggestionsDiv.style.display = "block";
+}
+
+// Optional: Hide suggestions when clicking outside
+document.addEventListener("click", function (e) {
+  if (!document.getElementById("searchInput").contains(e.target) &&
+      !document.getElementById("suggestions").contains(e.target)) {
+    document.getElementById("suggestions").style.display = "none";
+  }
+});
+
+function exportData() {
+  const bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+  const blob = new Blob([JSON.stringify(bills, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bills_backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const file = document.getElementById("importFile").files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if (Array.isArray(importedData)) {
+        localStorage.setItem("allBills", JSON.stringify(importedData));
+        alert("Data imported successfully!");
+      } else {
+        alert("Invalid JSON file.");
+      }
+    } catch (err) {
+      alert("Error reading file.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function downloadCSV() {
+  const bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+  let csv = "Bill No,Customer Name,Total Amount,Paid/Due\n";
+
+  bills.forEach(bill => {
+    const maal = parseFloat(bill.maal) || 0;
+    const priceKg = parseFloat(bill.priceKg) || 0;
+    const bag = parseFloat(bill.bag) || 0;
+    const bagPrice = parseFloat(bill.bagPrice) || 0;
+    const hamali = bag * bagPrice;
+    let baseTotal = (maal * priceKg) - hamali;
+
+    const payments = bill.payments || [];
+    const netPayments = payments.reduce((sum, p) => p.type === "+" ? sum + p.amount : sum - p.amount, 0);
+    const finalTotal = baseTotal + netPayments;
+    const status = finalTotal <= 0 ? "Paid" : "Due";
+
+    csv += `${bill.billNo},${bill.customerName},${finalTotal.toFixed(2)},${status}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bills_summary.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+
+  doc.setFontSize(12);
+  doc.text("Afsar Traders - Bill Summary", 10, 10);
+
+  let y = 20;
+  doc.text("Bill No | Customer Name | Amount | Status", 10, y);
+  y += 8;
+
+  bills.forEach(bill => {
+    const maal = parseFloat(bill.maal) || 0;
+    const priceKg = parseFloat(bill.priceKg) || 0;
+    const bag = parseFloat(bill.bag) || 0;
+    const bagPrice = parseFloat(bill.bagPrice) || 0;
+    const hamali = bag * bagPrice;
+    let baseTotal = (maal * priceKg) - hamali;
+    const payments = bill.payments || [];
+    const netPayments = payments.reduce((sum, p) => p.type === "+" ? sum + p.amount : sum - p.amount, 0);
+    const finalTotal = baseTotal + netPayments;
+    const status = finalTotal <= 0 ? "Paid" : "Due";
+
+    const row = `${bill.billNo} | ${bill.customerName} | ₹${finalTotal.toFixed(2)} | ${status}`;
+    doc.text(row, 10, y);
+    y += 8;
+    if (y > 270) { doc.addPage(); y = 10; }
+  });
+
+  doc.save("bills_summary.pdf");
+}
+let currentLang = 'mr'; // 'mr' = Marathi, 'en' = English
+
+const labels = {
+  customerName: { mr: 'ग्राहकाचे नाव', en: 'Customer Name' },
+  maal: { mr: 'माल (किलो)', en: 'Maal (kg)' },
+  priceKg: { mr: 'दर प्रति किलो', en: 'Price per Kg' },
+  bag: { mr: 'पोत्यांची संख्या', en: 'Bag Count' },
+  bagPrice: { mr: 'प्रति पोती दर', en: 'Per Bag Price' },
+  maalLabel: { mr: 'माल', en: 'Maal' },
+};
+
+function toggleLanguage() {
+  currentLang = currentLang === 'mr' ? 'en' : 'mr';
+
+  document.querySelector('label[for="customerName"]').innerText = labels.customerName[currentLang];
+  document.querySelector('label[for="maal"]').innerText = labels.maal[currentLang];
+  document.querySelector('label[for="priceKg"]').innerText = labels.priceKg[currentLang];
+  document.querySelector('label[for="bag"]').innerText = labels.bag[currentLang];
+  document.querySelector('label[for="bagPrice"]').innerText = labels.bagPrice[currentLang];
+  document.querySelector('label[for="maalType"]').innerText = labels.maalLabel[currentLang];
+
+  const maalOptions = {
+    mr: ["मका", "सोयबीन", "कपास", "चना", "गहू", "ज्वर", "बाजरा", "सोर्यफुल", "मूग", "तुर"],
+    en: ["Corn", "Soybean", "Cotton", "Chickpea", "Wheat", "Sorghum", "Millet", "Sunflower", "Moong", "Toor"]
+  };
+
+  const maalSelect = document.getElementById("maalType");
+  maalSelect.innerHTML = "";
+  maalOptions[currentLang].forEach(opt => {
+    const option = document.createElement("option");
+    option.text = opt;
+    maalSelect.add(option);
+  });
+
+  updatePreview();
+}
+
+function showSummary() {
+  const from = document.getElementById("summaryFromDate").value;
+  const to = document.getElementById("summaryToDate").value;
+  const status = document.getElementById("summaryStatus").value;
+
+  const bills = JSON.parse(localStorage.getItem("allBills") || "[]");
+
+  const results = bills.filter(bill => {
+    if (!bill.date) return false;
+    if (from && bill.date < from) return false;
+    if (to && bill.date > to) return false;
+
+    const maal = parseFloat(bill.maal) || 0;
+    const priceKg = parseFloat(bill.priceKg) || 0;
+    const bag = parseFloat(bill.bag) || 0;
+    const bagPrice = parseFloat(bill.bagPrice) || 0;
+    const hamali = bag * bagPrice;
+    let baseTotal = (maal * priceKg) - hamali;
+    const netPayments = (bill.payments || []).reduce((sum, p) => p.type === "+" ? sum + p.amount : sum - p.amount, 0);
+    const finalTotal = baseTotal + netPayments;
+    const isPaid = finalTotal <= 0;
+
+    if (status === "paid" && !isPaid) return false;
+    if (status === "due" && isPaid) return false;
+    return true;
+  });
+
+  const container = document.getElementById("summaryResults");
+  if (results.length === 0) {
+    container.innerHTML = "<p>No matching bills found.</p>";
+    container.style.display = "block";
+    return;
+  }
+
+  let html = "<table><thead><tr><th>Bill No</th><th>Name</th><th>Date</th><th>Total</th><th>Status</th></tr></thead><tbody>";
+  results.forEach(bill => {
+    const maal = parseFloat(bill.maal) || 0;
+    const priceKg = parseFloat(bill.priceKg) || 0;
+    const bag = parseFloat(bill.bag) || 0;
+    const bagPrice = parseFloat(bill.bagPrice) || 0;
+    const hamali = bag * bagPrice;
+    let baseTotal = (maal * priceKg) - hamali;
+    const netPayments = (bill.payments || []).reduce((sum, p) => p.type === "+" ? sum + p.amount : sum - p.amount, 0);
+    const finalTotal = baseTotal + netPayments;
+    const status = finalTotal <= 0 ? "Paid" : "Due";
+
+    html += `<tr>
+      <td>${bill.billNo}</td>
+      <td>${bill.customerName}</td>
+      <td>${bill.date}</td>
+      <td>₹${finalTotal.toFixed(2)}</td>
+      <td>${status}</td>
+    </tr>`;
+  });
+
+  html += "</tbody></table>";
+  container.innerHTML = html;
+  container.style.display = "block";
+}
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js")
+      .then(reg => console.log("Service Worker Registered!", reg))
+      .catch(err => console.log("Service Worker Failed:", err));
+  }
+
+    window.onload = function () {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("date").value = today;
+      let lastBillNo = parseInt(localStorage.getItem("lastBillNo") || "0", 10);
+      document.getElementById("billNo").value = lastBillNo + 1;
+      document.getElementById("topBillNo").innerText = lastBillNo + 1;
+      document.getElementById("topDate").innerText = today;
+      updatePreview();
+    };
+  </script>
+<div class="buttons">
+  <button onclick="exportData()">Export JSON</button>
+  <input type="file" id="importFile" accept=".json" onchange="importData()" />
+  <button onclick="downloadCSV()">Download Excel</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+</div>
+ <div class="buttons">
+        <button onclick="clearForm()">Clear</button>
+        <button onclick="toggleDarkMode()">Dark Mode</button>
+      </div>
+<div class="buttons">
+        <button onclick="deleteBill()">Delete Bill</button>
+        <button onclick="deleteAllBills()">Delete All Bills</button>
+      </div>
+    </div>
+<button onclick="toggleLanguage()">Toggle Language</button>
+<hr>
+<h3>Summary Report</h3>
+<div class="row">
+  <label>From Date</label>
+  <input type="date" id="summaryFromDate">
+</div>
+<div class="row">
+  <label>To Date</label>
+  <input type="date" id="summaryToDate">
+</div>
+<div class="row">
+  <label>Status</label>
+  <select id="summaryStatus">
+    <option value="all">All Bills</option>
+    <option value="paid">Paid</option>
+    <option value="due">Due</option>
+  </select>
+</div>
+<div class="buttons">
+  <button onclick="showSummary()">Show Summary</button>
+</div>
+<div id="summaryResults" class="bill-box" style="display:none;"></div>
+
+</body>
+</html>
