@@ -289,6 +289,7 @@
       }, 0);
 
       const finalTotal = baseTotal + netPayments;
+document.getElementById("paymentDate").value = new Date().toISOString().split('T')[0];
 
       document.getElementById("topBillNo").innerText = billNo;
       document.getElementById("topDate").innerText = date;
@@ -316,6 +317,12 @@
 
       payments.push({ date, amount, reason, type });
       updatePreview();
+      // Clear payment fields after adding
+document.getElementById('paymentDate').value = '';
+document.getElementById('paymentType').value = '+';
+document.getElementById('paymentAmount').value = '';
+document.getElementById('paymentReason').value = '';
+
     }
 
     function saveData() {
